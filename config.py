@@ -6,7 +6,9 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = 86400  # 24 hours in seconds
     
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    DATABASE_PATH = os.path.join(BASE_DIR, 'attendance.db')
+    # Render's persistent disk can be mounted at /var/data. Locally, keep the
+    # database beside the application unless DATABASE_PATH is explicitly set.
+    DATABASE_PATH = os.environ.get('DATABASE_PATH', os.path.join(BASE_DIR, 'attendance.db'))
     
     # Office Shift Configuration
     SHIFT_START_TIME = '09:00:00'  # 9:00 AM
