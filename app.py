@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, jsonify, request
 from config import Config
-from db import init_db
+from seed import seed_database
 from routes.auth import auth_bp
 from routes.employee import employee_bp
 from routes.admin import admin_bp
@@ -50,7 +50,7 @@ def profile_page():
 
 # Initialize DB when app starts
 with app.app_context():
-    init_db()
+    seed_database()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

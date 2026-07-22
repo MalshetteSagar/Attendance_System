@@ -7,13 +7,6 @@ def seed_database():
     conn = get_db()
     cursor = conn.cursor()
 
-    # Check if admin already exists
-    cursor.execute("SELECT id FROM users WHERE email = ?", ('admin@office.com',))
-    if cursor.fetchone():
-        print("Database already seeded.")
-        conn.close()
-        return
-
     # Passwords
     admin_pw = generate_password_hash('Admin@123')
     emp_pw = generate_password_hash('Emp@123')
@@ -26,10 +19,31 @@ def seed_database():
         ('EMP003', 'David Smith', 'emp3@office.com', emp_pw, 'employee', 'Human Resources', 'HR Coordinator', '9876543213', '2024-04-10')
     ]
 
-    cursor.executemany('''
-        INSERT INTO users (employee_id, name, email, password_hash, role, department, designation, phone, join_date)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', users_data)
+    cursor.execute('SELECT COUNT(*) AS count FROM users')
+    database_was_empty = cursor.fetchone()['count'] == 0
+
+    # Keep the documented accounts available when a database already exists.
+    for user in users_data:
+        cursor.execute('SELECT id FROM users WHERE email = ?', (user[2],))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            cursor.execute('''
+                UPDATE users
+                SET password_hash = ?, role = ?
+                WHERE id = ?
+            ''', (user[3], user[4], existing_user['id']))
+        else:
+            cursor.execute('''
+                INSERT INTO users (employee_id, name, email, password_hash, role, department, designation, phone, join_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', user)
+
+    conn.commit()
+
+    if not database_was_empty:
+        conn.close()
+        print("Default accounts verified.")
+        return
 
     conn.commit()
 
